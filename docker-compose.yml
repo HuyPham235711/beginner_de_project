@@ -13,6 +13,7 @@ x-airflow-common:
     AIRFLOW__API__AUTH_BACKEND: 'airflow.api.auth.backend.basic_auth'
     AIRFLOW_CONN_POSTGRES_DEFAULT: postgres://airflow:airflow@postgres:5432/airflow
   volumes:
+    - ./config/airflow.cfg:/opt/airflow/airflow.cfg
     - ./dags:/opt/airflow/dags
     - ./data:/opt/airflow/data
     - ./visualization:/opt/airflow/visualization
@@ -42,7 +43,7 @@ services:
       retries: 5
     restart: always
     ports:
-      - "5432:5432"
+      - "5433:5432"
 
   airflow-webserver:
     <<: *airflow-common

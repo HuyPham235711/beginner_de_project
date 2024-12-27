@@ -9,6 +9,7 @@ import duckdb
 from airflow import DAG
 from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
+from airflow.operators.email_operator import EmailOperator
 from airflow.providers.amazon.aws.operators.s3 import S3CreateBucketOperator
 from airflow.providers.amazon.aws.transfers.local_to_s3 import (
     LocalFilesystemToS3Operator,
@@ -41,7 +42,7 @@ def get_s3_folder(
 
 
 with DAG(
-    "user_analytics_dag",
+    "user_analytics_dag_v2",
     description="A DAG to Pull user data and movie review data \
         to analyze their behaviour",
     schedule_interval=timedelta(days=1),
@@ -136,7 +137,15 @@ with DAG(
         task_id="generate_dashboard", bash_command=q_cmd
     )
 
-    create_s3_bucket >> [user_purchase_to_s3, movie_review_to_s3]
+    email = EmailOperator(
+        task_id="send_email",
+        to="yourgmail@gmail.com",
+        subject="User Analytics Report",
+        html_content="<p>Please find the attached dashboard</p>",
+    )
+
+
+    email >> create_s3_bucket >> [user_purchase_to_s3, movie_review_to_s3]
 
     user_purchase_to_s3 >> get_user_purchase_to_warehouse
 
